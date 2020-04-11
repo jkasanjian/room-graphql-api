@@ -13,14 +13,14 @@ class CreateUser(graphene.Mutation):
     user = graphene.Field(UserType)
 
     class Arguments:
-        email       = graphene.String(required=True)
+        username    = graphene.String(required=True)
         password    = graphene.String(required=True)
         first_name  = graphene.String(required=True)
         last_name   = graphene.String(required=True)
 
-    def mutate(self, info, email, password, first_name, last_name):
+    def mutate(self, info, username, password, first_name, last_name):
         user = User(
-            email=email,
+            username=username,
             first_name=first_name,
             last_name=last_name,
         )
