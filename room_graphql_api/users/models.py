@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
+class Household(models.Model):
+    name        = models.CharField(max_length=64)
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, first_name, last_name, password=None):
@@ -40,6 +43,13 @@ class User(AbstractBaseUser):
     first_name      = models.CharField(verbose_name='first name', max_length=32)
     last_name       = models.CharField(verbose_name='last name', max_length=32)
     status          = models.CharField(max_length=255, null=True, blank=True)
+    household       = models.ForeignKey(
+                        Household, 
+                        related_name='users',
+                        on_delete = models.SET_NULL,
+                        null=True,
+                        blank=True,
+                    )
 
     date_joined     = models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login      = models.DateTimeField(verbose_name='last login', auto_now=True)
