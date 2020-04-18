@@ -2,7 +2,7 @@
 
 set -e
 
-PROJECT_BASE_PATH='/usr/local/apps/room-graphql-api/room-graphql-api'
+PROJECT_BASE_PATH='/usr/local/apps/room-graphql-api'
 
 git pull
 $PROJECT_BASE_PATH/env/bin/python manage.py makemigrations
