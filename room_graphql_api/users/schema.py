@@ -4,6 +4,7 @@ from graphene_django import DjangoObjectType
 
 from .models import User, Household
 
+
 '''----------------------------USERS----------------------------''' 
 
 class UserType(DjangoObjectType):
@@ -68,6 +69,8 @@ class UpdateUser(graphene.Mutation):
         
         except ValidationError as e:
             return UpdateUser(user=user, errors=e)
+
+
 
 '''----------------------------HOUSEHOLD----------------------------''' 
 
