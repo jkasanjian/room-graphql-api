@@ -4,7 +4,7 @@ set -e
 
 PROJECT_GIT_URL='https://github.com/jkasanjian/room-graphql-api.git'
 
-PROJECT_BASE_PATH='/usr/local/apps/room-graphql-api'
+PROJECT_BASE_PATH='/usr/local/apps/room-graphql-api/room-graphql-api'
 
 echo "Installing dependencies..."
 apt-get update
