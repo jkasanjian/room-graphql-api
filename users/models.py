@@ -2,10 +2,14 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
+
+'''----------------------------HOUSEHOLD----------------------------''' 
 class Household(models.Model):
-    name        = models.CharField(max_length=64)
+    name = models.CharField(max_length=64)
 
 
+
+'''----------------------------USERS----------------------------''' 
 class UserManager(BaseUserManager):
     def create_user(self, email, first_name, last_name, password=None):
         if not email:
@@ -16,7 +20,7 @@ class UserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email),
             first_name=first_name,
-            last_name=last_name,
+            last_name=last_name
         )
         user.set_password(password)
         user.save(user=self._db)
@@ -28,7 +32,7 @@ class UserManager(BaseUserManager):
             email=email,
             password=password,
             first_name=first_name,
-            last_name=last_name,
+            last_name=last_name
         )
         user.is_admin = True
         user.is_staff = True
@@ -62,4 +66,25 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['first_name', 'last_name',]
 
     objects = UserManager()
+
+
+
+'''----------------------------CHAT----------------------------''' 
+
+class MessageBoard(models.Model):
+    household = models.OneToOneField(
+        Household, 
+        on_delete=models.CASCADE, 
+        primary_key=True)
+
+
+class Message(models.Model):
+    sender      = models.ForeignKey(User, on_delete=models.CASCADE)
+    text        = models.CharField(max_length=512)
+    board       = models.ForeignKey(
+                    MessageBoard, 
+                    on_delete=models.CASCADE,
+                    related_name='messages')
+    timestamp   = models.DateTimeField(auto_now_add=True)
+    pinned      = models.BooleanField(default=False)
 
