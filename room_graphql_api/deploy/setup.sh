@@ -2,10 +2,9 @@
 
 set -e
 
-# TODO: Set to URL of git repo.
-PROJECT_GIT_URL='https://github.com/jkasanjian/roomslice-server.git'
+PROJECT_GIT_URL='https://github.com/jkasanjian/room-graphql-api.git'
 
-PROJECT_BASE_PATH='/usr/local/apps/roomslice-server'
+PROJECT_BASE_PATH='/usr/local/apps/room-graphql-api'
 
 echo "Installing dependencies..."
 apt-get update
@@ -29,15 +28,15 @@ $PROJECT_BASE_PATH/env/bin/python manage.py migrate
 $PROJECT_BASE_PATH/env/bin/python manage.py collectstatic --noinput
 
 # Configure supervisor
-cp $PROJECT_BASE_PATH/deploy/supervisor_profiles_api.conf /etc/supervisor/conf.d/profiles_api.conf
+cp $PROJECT_BASE_PATH/deploy/supervisor_users.conf /etc/supervisor/conf.d/users.conf
 supervisorctl reread
 supervisorctl update
-supervisorctl restart profiles_api
+supervisorctl restart users
 
 # Configure nginx
-cp $PROJECT_BASE_PATH/deploy/nginx_profiles_api.conf /etc/nginx/sites-available/profiles_api.conf
+cp $PROJECT_BASE_PATH/deploy/nginx_users.conf /etc/nginx/sites-available/users.conf
 rm /etc/nginx/sites-enabled/default
-ln -s /etc/nginx/sites-available/profiles_api.conf /etc/nginx/sites-enabled/profiles_api.conf
+ln -s /etc/nginx/sites-available/users.conf /etc/nginx/sites-enabled/users.conf
 systemctl restart nginx.service
 
 echo "DONE! :)"
