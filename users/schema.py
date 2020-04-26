@@ -5,6 +5,7 @@ from graphene_django import DjangoObjectType
 from .models import User, Household
 
 
+
 '''----------------------------USERS----------------------------''' 
 
 class UserType(DjangoObjectType):
@@ -71,6 +72,21 @@ class UpdateUser(graphene.Mutation):
             return UpdateUser(user=user, errors=e)
 
 
+class DeleteUser(graphene.Mutation):
+    ok = graphene.Boolean()
+    
+    class Arguments:
+        email = graphene.String(required=True)
+
+    def mutate(self, info, email):
+        user = info.context.user
+        user.delete()
+
+        return DeleteUser(ok=True)
+
+
+
+
 
 '''----------------------------HOUSEHOLD----------------------------''' 
 
@@ -91,10 +107,39 @@ class CreateHousehold(graphene.Mutation):
         return CreateHousehold(household=household)
         
 
+class UpdateHousehold(graphene.Mutation):
+    household = graphene.Field(HouseholdType)
+
+    class Arguments:
+        name = graphene.String()
+    
+    def mutate(self, info, name):
+        user = info.context.user
+        household = Household.objects.filter(id=user.household.id).first()
+        setattr(household, 'name', name)
+        household.full_clean()
+        household.save()
+
+        return UpdateHousehold(household=household)
+
+
+class DeleteHousehold(graphene.Mutation):
+    ok = graphene.Boolean()
+
+    class Arguments:
+        h_id = graphene.Int(required=True)
+    
+    def mutate(self, info, h_id):
+        household = Household.objects.get(id=h_id)
+        household.delete()
+
+        return DeleteHousehold(ok=True)
 
 
 
-'''--------------------------------------------------------''' 
+
+
+'''-----------------------DECLARATIONS-----------------------''' 
 
 class Query(graphene.ObjectType):
     users = graphene.List(UserType)
@@ -111,6 +156,7 @@ class Query(graphene.ObjectType):
             raise Exception('Not logged in')
         return user
     
+    
     def resolve_households(self, info):
         return Household.objects.all()
 
@@ -125,4 +171,8 @@ class Query(graphene.ObjectType):
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
+    delete_user = DeleteUser.Field()
+
     create_household = CreateHousehold.Field()
+    update_household = UpdateHousehold.Field()
+    delete_household = DeleteHousehold.Field()
