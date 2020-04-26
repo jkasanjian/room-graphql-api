@@ -4,12 +4,35 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
 '''----------------------------HOUSEHOLD----------------------------''' 
+
 class Household(models.Model):
     name = models.CharField(max_length=64)
 
 
+'''----------------------------TASK----------------------------''' 
+
+
+class Task(models.Model):
+    name        = models.CharField(max_length=64)
+    description = models.CharField(max_length=128)
+    due_date    = models.DateTimeField()
+    in_between  = models.IntegerField()
+    complete    = models.BooleanField()
+    current     = models.ForeignKey(User, on_delete=models.SET_NULL)
+    rotation    = models.ManyToManyField(User)
+    household   = models.ForeignKey(
+                  Household, 
+                  related_name='tasks',
+                  on_delete = models.CASCADE
+            )
+
+
+
+
+
 
 '''----------------------------USERS----------------------------''' 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, first_name, last_name, password=None):
         if not email:
