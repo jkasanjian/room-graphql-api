@@ -3,7 +3,7 @@ import graphene
 from graphene_django import DjangoObjectType
 from datetime import datetime, timedelta
 from datetime import date as date_o
-
+from dateutil.relativedelta import relativedelta
 from .models import User, Household, Task, CompleteTask
 
 
@@ -163,10 +163,11 @@ class CreateTask(graphene.Mutation):
         name = graphene.String(required=True)
         description = graphene.String(required=True)
         due_date = graphene.String(required=True)
-        frequency = graphene.Int(required=True)
-        current = graphene.Int(required=True)
+        frequency = graphene.String(required=True)
+        current = graphene.Int()
+        rotation = graphene.List(graphene.Int)
 
-    def mutate(self, info, name, description, due_date, frequency, current):
+    def mutate(self, info, name, description, due_date, frequency, current=None, rotation=None):
         user = info.context.user
         task = Task(
             name=name,
@@ -174,20 +175,28 @@ class CreateTask(graphene.Mutation):
             due_date=datetime.strptime(due_date, '%d%m%Y').date(),
             frequency=frequency,
             household=Household.objects.get(id=user.household.id),
-            current=User.objects.filter(id=current).first()
         )
+        if current:
+            setattr(task, 'current', User.objects.get(id=current))
         task.save()
+
+        if rotation:
+            for r_id in rotation:
+                task.rotation.add(User.objects.get(id=r_id))
+
         return CreateTask(task=task)
         
+
 
 class TaskInput(graphene.InputObjectType):
     task_id = graphene.Int(required=True)
     name = graphene.String()
     description = graphene.String()
     due_date = graphene.String()
-    frequency = graphene.Int()
+    frequency = graphene.String()
     current = graphene.Int()
     complete = graphene.Boolean()
+    rotation = graphene.List(graphene.Int)
 
 
 class UpdateTask(graphene.Mutation):
@@ -213,10 +222,7 @@ class UpdateTask(graphene.Mutation):
                 setattr(task, 'complete', False)
                 
             elif k == 'complete' and v is not None:
-                if v:   # if changing to true
-                    next_date = task.due_date + timedelta(days=task.frequency)
-                    setattr(task, 'due_date', next_date)
-                    setattr(task, k, v)
+                if v:   # if changing completed to true
                     # Saving CompleteTask to database
                     done_task = CompleteTask(
                         name=task.name,
@@ -227,8 +233,56 @@ class UpdateTask(graphene.Mutation):
                     done_task.full_clean()
                     done_task.save()
 
+                    unit, num = task.frequency[0], int(task.frequency[1:])
+                    if unit == 'X':
+                        setattr(task, 'name', 'deleted')
+                        task.delete()
+                        return UpdateTask(task=task)
+                    elif unit == 'D':
+                        delta = timedelta(days=num)
+                    elif unit == 'W':
+                        delta = timedelta(weeks=num)
+                    elif unit == 'M':
+                        delta = relativedelta(months=num)
+                    elif unit == 'Y':
+                        delta = relativedelta(years=num)
+                    # updating to next due date based on frequency
+                    next_date = task.due_date + delta
+                    setattr(task, 'due_date', next_date)
+                    setattr(task, k, False) # setting complete to false
+
+                    if task.rotation:
+                        # update current to next in rotation
+                        print('IN ROTATION')
+                        start = True
+                        up_next = False
+                        for r in task.rotation.all():
+                            if start:
+                                print('starter', r.first_name)
+                                first = r
+
+                            if up_next:
+                                setattr(task, 'current', r)
+                                print('up next is', r.first_name)
+                                task.full_clean()
+                                task.save()
+                                return UpdateTask(task=task)
+
+                            if r == task.current:
+                                print('up next called', r.first_name)
+                                up_next = True
+                
+                            start = False
+                        # if here, current was last, so first is next
+                        print('at the end')
+                        setattr(task, 'current', first)
+
                 else:   # if changing to false
                     setattr(task, k, v)
+            
+            elif k == 'rotation' and v is not None:
+                for r_id in v:
+                    task.rotation.add(User.objects.get(id=r_id))
 
             else:
                 setattr(task, k, v)
@@ -296,7 +350,17 @@ class Query(graphene.ObjectType):
 
     # TASKS
     def resolve_tasks(self, info):
-        return info.context.user.household.tasks.order_by('complete', 'due_date')
+        user = info.context.user
+        my_tasks = []
+        task_list = user.household.tasks.order_by('complete', 'due_date')
+        for t in task_list:
+            if t.current == user:
+                my_tasks.append(t)
+
+        other_tasks = [x for x in task_list if x not in my_tasks]
+        my_tasks.extend(other_tasks)
+        return my_tasks
+
 
     def resolve_complete_tasks(self, info):
         return info.context.user.household.complete_tasks.order_by('date')
@@ -316,3 +380,4 @@ class Mutation(graphene.ObjectType):
     # TASKS
     create_task = CreateTask.Field()
     update_task = UpdateTask.Field()
+    delete_task = DeleteTask.Field()

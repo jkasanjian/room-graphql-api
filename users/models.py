@@ -77,10 +77,10 @@ class Task(models.Model):
     name        = models.CharField(max_length=64)
     description = models.CharField(max_length=128)
     due_date    = models.DateField()
-    frequency   = models.IntegerField()
+    frequency   = models.CharField(max_length=8)
     complete    = models.BooleanField(default=False) 
-    current     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    rotation    = models.ManyToManyField(User)
+    current     = models.ForeignKey(User, related_name='current', on_delete=models.SET_NULL, null=True, blank=True)
+    rotation    = models.ManyToManyField(User, related_name='rotation')
     household   = models.ForeignKey(
                   Household, 
                   related_name='tasks',
