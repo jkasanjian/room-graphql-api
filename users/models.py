@@ -9,27 +9,6 @@ class Household(models.Model):
     name = models.CharField(max_length=64)
 
 
-'''----------------------------TASK----------------------------''' 
-
-
-class Task(models.Model):
-    name        = models.CharField(max_length=64)
-    description = models.CharField(max_length=128)
-    due_date    = models.DateTimeField()
-    in_between  = models.IntegerField()
-    complete    = models.BooleanField()
-    current     = models.ForeignKey(User, on_delete=models.SET_NULL)
-    rotation    = models.ManyToManyField(User)
-    household   = models.ForeignKey(
-                  Household, 
-                  related_name='tasks',
-                  on_delete = models.CASCADE
-            )
-
-
-
-
-
 
 '''----------------------------USERS----------------------------''' 
 
@@ -90,3 +69,34 @@ class User(AbstractBaseUser):
 
     objects = UserManager()
 
+
+
+'''----------------------------TASKS----------------------------''' 
+
+class Task(models.Model):
+    name        = models.CharField(max_length=64)
+    description = models.CharField(max_length=128)
+    due_date    = models.DateField()
+    frequency   = models.IntegerField()
+    complete    = models.BooleanField(default=False) 
+    current     = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    rotation    = models.ManyToManyField(User)
+    household   = models.ForeignKey(
+                  Household, 
+                  related_name='tasks',
+                  on_delete = models.CASCADE
+            )
+
+
+class CompleteTask(models.Model):
+    name = models.CharField(max_length=64)
+    roommate = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    date = models.DateField()
+    household   = models.ForeignKey(
+                Household, 
+                related_name='complete_tasks',
+                on_delete = models.CASCADE
+        )
