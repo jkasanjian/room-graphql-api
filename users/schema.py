@@ -293,7 +293,6 @@ class UpdateTask(graphene.Mutation):
         return UpdateTask(task=task)
 
 
-
 class DeleteTask(graphene.Mutation):
     ok = graphene.Boolean()
 
@@ -323,7 +322,7 @@ class Query(graphene.ObjectType):
     households      = graphene.List(HouseholdType)
     homepage        = graphene.List(HomepageUnion)
 
-    tasks           = graphene.List(TaskType)
+    tasks           = graphene.List(graphene.List(TaskType))
     complete_tasks  = graphene.List(CompleteTaskType)
 
     # USERS
@@ -358,8 +357,8 @@ class Query(graphene.ObjectType):
                 my_tasks.append(t)
 
         other_tasks = [x for x in task_list if x not in my_tasks]
-        my_tasks.extend(other_tasks)
-        return my_tasks
+        
+        return [my_tasks, other_tasks]
 
 
     def resolve_complete_tasks(self, info):
