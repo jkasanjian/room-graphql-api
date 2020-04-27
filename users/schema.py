@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from datetime import date as date_o
 from dateutil.relativedelta import relativedelta
 from .models import User, Household, Task, CompleteTask
-
+from copy import deepcopy
 
 
 '''----------------------------USERS----------------------------''' 
@@ -236,8 +236,9 @@ class UpdateTask(graphene.Mutation):
                     unit, num = task.frequency[0], int(task.frequency[1:])
                     if unit == 'X':
                         setattr(task, 'name', 'deleted')
+                        ret = deepcopy(task)
                         task.delete()
-                        return UpdateTask(task=task)
+                        return UpdateTask(task=ret)
                     elif unit == 'D':
                         delta = timedelta(days=num)
                     elif unit == 'W':
