@@ -56,7 +56,7 @@ class UpdateUser(graphene.Mutation):
 
         for k, v in user_data.items():
             if k == 'password' and v is not None:
-                user.set_password(user_data.password)
+                user.set_password(v)
 
             elif k == 'household' and v is not None:
                 household = Household.objects.get(id=v)
@@ -219,7 +219,6 @@ class UpdateTask(graphene.Mutation):
             elif k == 'current' and v is not None:
                 new_current = User.objects.get(id=v)
                 setattr(task, k, new_current)
-                setattr(task, 'complete', False)
                 
             elif k == 'complete' and v is not None:
                 if v:   # if changing completed to true
@@ -254,17 +253,15 @@ class UpdateTask(graphene.Mutation):
 
                     if task.rotation:
                         # update current to next in rotation
-                        print('IN ROTATION')
                         start = True
                         up_next = False
                         for r in task.rotation.all():
                             if start:
-                                print('starter', r.first_name)
                                 first = r
+                                start = False
 
                             if up_next:
                                 setattr(task, 'current', r)
-                                print('up next is', r.first_name)
                                 task.full_clean()
                                 task.save()
                                 return UpdateTask(task=task)
@@ -273,7 +270,6 @@ class UpdateTask(graphene.Mutation):
                                 print('up next called', r.first_name)
                                 up_next = True
                 
-                            start = False
                         # if here, current was last, so first is next
                         print('at the end')
                         setattr(task, 'current', first)
