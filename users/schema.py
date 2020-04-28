@@ -86,7 +86,7 @@ class DeleteUser(graphene.Mutation):
         user = info.context.user
         user.delete()
 
-        return DeleteUser(ok=True)
+        return DeleteUser(ok=True)  # TODO: error handling
 
 
 
