@@ -231,7 +231,7 @@ class UpdateTask(graphene.Mutation):
                         )
                     done_task.full_clean()
                     done_task.save()
-
+                    
                     unit, num = task.frequency[0], int(task.frequency[1:])
                     if unit == 'X':
                         setattr(task, 'name', 'deleted')

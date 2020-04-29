@@ -79,7 +79,11 @@ class Task(models.Model):
     due_date    = models.DateField()
     frequency   = models.CharField(max_length=8)
     complete    = models.BooleanField(default=False) 
-    current     = models.ForeignKey(User, related_name='current', on_delete=models.SET_NULL, null=True, blank=True)
+    current     = models.ForeignKey(
+                    User, 
+                    related_name='current', 
+                    on_delete=models.SET_NULL, 
+                    null=True, blank=True)
     rotation    = models.ManyToManyField(User, related_name='rotation')
     household   = models.ForeignKey(
                   Household, 
@@ -100,3 +104,36 @@ class CompleteTask(models.Model):
                 related_name='complete_tasks',
                 on_delete = models.CASCADE
         )
+
+
+
+
+'''----------------------------BILLS----------------------------''' 
+
+class Bill(models.Model):
+    name            = models.CharField(max_length=64)
+    balance         = models.DecimalField(max_digits=8, decimal_places=2)
+    due_date        = models.DateField()
+    frequency       = models.CharField(max_length=8)
+    is_active       = models.BooleanField(default=True)
+    manager         = models.ForeignKey(User, 
+                    related_name='manager', 
+                    on_delete=models.CASCADE)
+    participants    = models.ManyToManyField(User, related_name='participants')
+    household       = models.ForeignKey(
+                    Household, 
+                    related_name='bills',
+                    on_delete = models.CASCADE
+            )
+
+
+class BillCycle(models.Model):
+    bill        = models.ForeignKey(
+                Bill, 
+                related_name='cycles',
+                on_delete = models.CASCADE
+    )
+    recipient   = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount      = models.DecimalField(max_digits=8, decimal_places=2)
+    is_paid     = models.BooleanField(default=False)     
+    date_paid   = models.DateField(null=True, blank=True)
