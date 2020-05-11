@@ -111,19 +111,20 @@ class CompleteTask(models.Model):
 '''----------------------------BILLS----------------------------''' 
 
 class Bill(models.Model):
-    name            = models.CharField(max_length=64)
-    balance         = models.DecimalField(max_digits=8, decimal_places=2)
-    due_date        = models.DateField()
-    frequency       = models.CharField(max_length=8)
-    is_active       = models.BooleanField(default=True)
-    manager         = models.ForeignKey(User, 
-                    related_name='manager', 
-                    on_delete=models.CASCADE)
-    participants    = models.ManyToManyField(User, related_name='participants')
-    household       = models.ForeignKey(
-                    Household, 
-                    related_name='bills',
-                    on_delete = models.CASCADE
+    name                = models.CharField(max_length=64)
+    total_balance       = models.DecimalField(default=0.0, max_digits=8, decimal_places=2)
+    due_date            = models.DateField()
+    frequency           = models.CharField(max_length=8)
+    is_active           = models.BooleanField(default=False)
+    manager             = models.ForeignKey(User, 
+                        related_name='manager', 
+                        on_delete=models.CASCADE)
+    participants        = models.ManyToManyField(User, related_name='participants')
+    num_split           = models.IntegerField(default=1)
+    household           = models.ForeignKey(
+                        Household, 
+                        related_name='bills',
+                        on_delete = models.CASCADE
             )
 
 
